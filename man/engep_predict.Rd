@@ -10,8 +10,10 @@ engep_predict(
   pre_genes,
   nCpus = 6,
   simi_list = NULL,
-  parallel = T,
-  k_list = NULL
+  parallel = TRUE,
+  k_list = NULL,
+  get_baes = FALSE,
+  get_weight = FALSE
 )
 }
 \arguments{
@@ -31,7 +33,14 @@ c("pearson",  "spearman","cosine","jaccard","weighted_rank","manhattan","canberr
 \item{parallel}{a logical value to indicate if the process should be run parallelly in multiple threads,
 default to TURE.}
 
-\item{k_list}{a list contains different values of $k$ (number of neighbors in knn), default is (20,30,40,50).}
+\item{k_list}{a list contains different values of $k$ (number of neighbors in knn),
+default is (20,30,40,50).}
+
+\item{get_baes}{a logical value to indicate whethe to return base results or not,
+default is FAISE.}
+
+\item{get_weight}{a logical value to indicate whethe to return weights of different references,
+default is FAISE.}
 }
 \value{
 the predicted expression levels of unmeasured genes.

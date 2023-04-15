@@ -4,11 +4,14 @@
 \alias{ensemble_result}
 \title{ensemble_result}
 \usage{
-ensemble_result(result_single)
+ensemble_result(result_single, get_weight = FALSE)
 }
 \arguments{
 \item{result_single}{a list contains base results predicted by different reference datasets, different
 similarity measures and different values of k.}
+
+\item{get_weight}{a logical value to indicate whethe to return weights of different references,
+default is FAISE.}
 }
 \value{
 ensembel result.

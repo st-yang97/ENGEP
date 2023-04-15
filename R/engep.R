@@ -43,12 +43,18 @@ gene_dataliat <- function(spa_counts,ref_list,pre_genes){
 #'     "euclidean", "phi_s","rho_p")
 #' @param parallel a logical value to indicate if the process should be run parallelly in multiple threads,
 #'     default to TURE.
-#' @param k_list a list contains different values of $k$ (number of neighbors in knn), default is (20,30,40,50).
+#' @param k_list a list contains different values of $k$ (number of neighbors in knn),
+#'     default is (20,30,40,50).
+#' @param get_baes a logical value to indicate whethe to return base results or not,
+#'     default is FAISE.
+#' @param get_weight a logical value to indicate whethe to return weights of different references,
+#'     default is FAISE.
 #' @export
 #' @return the predicted expression levels of unmeasured genes.
 #'
 
-engep_predict <- function(spa_counts,ref_list,pre_genes,nCpus=6,simi_list= NULL,parallel=T,k_list = NULL){
+engep_predict <- function(spa_counts,ref_list,pre_genes,nCpus=6,simi_list= NULL,
+                          parallel=TRUE,k_list = NULL,get_baes=FALSE,get_weight=FALSE){
 
   if(is.null(simi_list)){
     simi_list = c("pearson",  "spearman","cosine",
@@ -63,7 +69,7 @@ engep_predict <- function(spa_counts,ref_list,pre_genes,nCpus=6,simi_list= NULL,
   data_list = gene_dataliat(spa_counts,ref_list,pre_genes)
 
   k_r = length(data_list$ref_c)
-  if (parallel){
+  if (parallel==TRUE){
     message("Run ENGEP parallelly to get base results")
     result_single = parallel::mclapply(1:k_r, imp_new, data_list$qur_c,data_list$ref_c,simi_list,k_list,data_list$ref_p,mc.cores=6)
   }else{
@@ -71,9 +77,12 @@ engep_predict <- function(spa_counts,ref_list,pre_genes,nCpus=6,simi_list= NULL,
     result_single =lapply(1:k_r, imp_new, data_list$qur_c,data_list$ref_c,simi_list,k_list,data_list$ref_p)
   }
   message("Combine base results")
-  engep_result = ensemble_result(result_single)
-  return(engep_result)
-
+  engep_result = ensemble_result(result_single,get_weight)
+  if (get_baes == TRUE){
+    return(list("ensemble"=engep_result,"base result"=result_single))
+  }else {
+    return(engep_result)
+  }
 }
 
 #' @title imp_new
@@ -153,11 +162,13 @@ imp_new <- function(i,spcom,sccomlist,similist,k.list,sc_implist){
 #' @description Function to combine base results by a weighted average ensemble method.
 #' @param result_single a list contains base results predicted by different reference datasets, different
 #'     similarity measures and different values of k.
+#' @param get_weight a logical value to indicate whethe to return weights of different references,
+#'     default is FAISE.
 #'
 #' @return ensembel result.
 #'
 #' @examples
-ensemble_result <- function(result_single){
+ensemble_result <- function(result_single,get_weight=FALSE){
   r2_vec <- rep(0,length(result_single))
   for(i in 1:length(result_single)){
     r2_vec[i]=result_single[[i]]$r2
@@ -171,7 +182,11 @@ ensemble_result <- function(result_single){
   for (i in 1:length(result_single)){
     fianl_re <- fianl_re + result_single[[i]]$exp * weight_vec_k[i]
   }
-  return(fianl_re)
+  if(get_weight==TRUE){
+    return(list("exp"=fianl_re,"weight"=weight_vec_k))
+  }else{
+    return(fianl_re)
+  }
 }
 
 #' @title weight_r2
