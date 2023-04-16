@@ -12,3 +12,10 @@ ENGEP combins multiple prediction results from different reference datasets and 
  devtools::install_github("Zhangxf-ccnu/ENGEP")
  ```
 
+## Tutorial
+
+A tutorial with examples of the usage of `ENGEP` is available at: [ENGEP-examples.html](https://github.com/st-yang97/ENGEP-examples)
+
+## Contact
+
+Please do not hesitate to contact Miss **Yang Shi-Tong** [styang@mails.ccnu.edu.cn](styang@mails.ccnu.edu.cn) or Dr. **Xiao-Fei Zhang** [zhangxf@mail.ccnu.edu.cn](zhangxf@mail.ccnu.edu.cn) to seek any clarifications regarding any contents or operation of the archive.
