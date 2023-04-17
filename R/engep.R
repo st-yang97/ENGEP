@@ -32,7 +32,7 @@ gene_dataliat <- function(spa_counts,ref_list,pre_genes){
   print(paste("Predict", length(pre_genes), "genes", sep = ""))
 
   for (i in 1:length(ref_list)){
-    n = ncol(ref_list[[i]])
+    n = ncol(as.matrix(ref_list[[i]]))
     K = ceiling(n/8000)
     sample_id = sample(rep(1:K, length.out=n))
     for(j in 1:K){
