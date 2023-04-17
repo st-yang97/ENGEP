@@ -4,10 +4,12 @@
 #' @param spa_counts gene expression matrix of spatial dataset (gene by cell).
 #' @param ref_list each element in the list is a gene expression matrix (gene by cell) of
 #'     an original single reference dataset.
-#' @param pre_genes an array contains names of genes to be predicted.
+#' @param pre_genes an array contains names of genes to be predicted, if is NULL, ENGEP will
+#'     predict the intersection of unique genes of each references. If you let pre_genes = NULL,
+#'     we suggest you to use reference datasets with high variable genes.
 #'
 #' @return a list contains equal-sized reference sub-datasets with common genes and predicted genes,
-#'     and spatial dataset with common genes.
+#'     spatial dataset with common genes, and unique genes in references.
 #'
 gene_dataliat <- function(spa_counts,ref_list,pre_genes){
   ref_common = list()
@@ -17,6 +19,18 @@ gene_dataliat <- function(spa_counts,ref_list,pre_genes){
   for (i in 1:length(ref_list)){
     common_genes = intersect(common_genes,rownames(ref_list[[i]]))
   }
+  unique_genes_i = setdiff(rownames(ref_list[[1]]), common_genes)
+  for (i in 1:length(ref_list)){
+    unique_genes_ii = setdiff(rownames(ref_list[[i]]), common_genes)
+    unique_genes = intersect (unique_genes_i,unique_genes_ii)
+    unique_genes_i = unique_genes
+  }
+  if (is.null(pre_genes)){
+    pre_genes = unique_genes
+  }
+
+  print(paste("Predict", length(pre_genes), "genes", sep = ""))
+
   for (i in 1:length(ref_list)){
     n = ncol(ref_list[[i]])
     K = ceiling(n/8000)
@@ -28,7 +42,10 @@ gene_dataliat <- function(spa_counts,ref_list,pre_genes){
       a=a+1
     }
   }
-  return(list(ref_c = ref_common, ref_p = ref_pre,qur_c = spa_counts[common_genes,]))
+  return(list(ref_c = ref_common,
+              ref_p = ref_pre,
+              qur_c = spa_counts[common_genes,],
+              uni_genes = unique_genes))
 }
 
 #' @title engep_predict
@@ -36,11 +53,13 @@ gene_dataliat <- function(spa_counts,ref_list,pre_genes){
 #' @param spa_counts gene expression matrix of spatial dataset (gene by cell).
 #' @param ref_list each element in the list is a gene expression matrix (gene by cell) of an
 #'     original single reference dataset.
-#' @param pre_genes an array contains names of genes to be predicted.
+#' @param pre_genes an array contains names of genes to be predicted, if is NULL, ENGEP will
+#'     predict the intersection of unique genes of each references.
 #' @param nCpus number of (maximum) cores to use for parallel execution, default to 6.
-#' @param simi_list a vector indicates the ten similarity measure that are used, default is
-#'     c("pearson",  "spearman","cosine","jaccard","weighted_rank","manhattan","canberra",
-#'     "euclidean", "phi_s","rho_p")
+#' @param simi_list a vector indicates the ten similarity measures that are used, note that the
+#'     similarity measures used should be chosen from the ten similarity measures mentioned in the
+#'     document. Default is c("pearson",  "spearman","cosine", "jaccard","weighted_rank",
+#'     "manhattan","canberra","euclidean", "phi_s","rho_p")
 #' @param parallel a logical value to indicate if the process should be run parallelly in multiple threads,
 #'     default to TURE.
 #' @param k_list a list contains different values of $k$ (number of neighbors in knn),
@@ -57,16 +76,27 @@ engep_predict <- function(spa_counts,ref_list,pre_genes,nCpus=6,simi_list= NULL,
                           parallel=TRUE,k_list = NULL,get_baes=FALSE,get_weight=FALSE){
 
   if(is.null(simi_list)){
-    simi_list = c("pearson",  "spearman","cosine",
-                  "jaccard","weighted_rank","manhattan","canberra","euclidean",
-                  "phi_s","rho_p")
+    simi_list = c("pearson",  "spearman","cosine","jaccard","weighted_rank","manhattan",
+                  "canberra","euclidean","phi_s","rho_p")
+  }
+
+  if (length(setdiff(simi_list, c("pearson", "spearman", "cosine", "jaccard", "weighted_rank",
+                                  "manhattan", "canberra", "euclidean", "phi_s","rho_p"))) > 0) {
+    stop("Error: Similarity measures should be chosen from the ten measures mentioned in the document")
   }
 
   if(is.null(k_list)){
     k_list = c(20,30,40,50)
   }
+
   message("Partition large reference")
   data_list = gene_dataliat(spa_counts,ref_list,pre_genes)
+  rm(ref_list)
+  gc()
+
+  if (is.null(pre_genes)){
+    pre_genes = data_list$uni_genes
+  }
 
   k_r = length(data_list$ref_c)
   if (parallel==TRUE){
@@ -151,8 +181,8 @@ imp_new <- function(i,spcom,sccomlist,similist,k.list,sc_implist){
 
     }
   }
-  imp_gene = imp_gene/40
-  imp_gene_t = imp_gene_t/40
+  imp_gene = imp_gene/(length(k.list)*length(similist))
+  imp_gene_t = imp_gene_t/(length(k.list)*length(similist))
   r2_single = caret::R2(as.vector(imp_gene_t), as.vector(t(as.matrix(spcom@assays$RNA@data[gene.train,]))))
   return(list("exp"=imp_gene,"r2"=r2_single))
 

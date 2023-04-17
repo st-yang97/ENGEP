@@ -12,11 +12,13 @@ gene_dataliat(spa_counts, ref_list, pre_genes)
 \item{ref_list}{each element in the list is a gene expression matrix (gene by cell) of
 an original single reference dataset.}
 
-\item{pre_genes}{an array contains names of genes to be predicted.}
+\item{pre_genes}{an array contains names of genes to be predicted, if is NULL, ENGEP will
+predict the intersection of unique genes of each references. If you let pre_genes = NULL,
+we suggest you to use reference datasets with high variable genes.}
 }
 \value{
 a list contains equal-sized reference sub-datasets with common genes and predicted genes,
-and spatial dataset with common genes.
+spatial dataset with common genes, and unique genes in references.
 }
 \description{
 Function to randomly partition large reference into small reference.

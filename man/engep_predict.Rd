@@ -22,13 +22,15 @@ engep_predict(
 \item{ref_list}{each element in the list is a gene expression matrix (gene by cell) of an
 original single reference dataset.}
 
-\item{pre_genes}{an array contains names of genes to be predicted.}
+\item{pre_genes}{an array contains names of genes to be predicted, if is NULL, ENGEP will
+predict the intersection of unique genes of each references.}
 
 \item{nCpus}{number of (maximum) cores to use for parallel execution, default to 6.}
 
-\item{simi_list}{a vector indicates the ten similarity measure that are used, default is
-c("pearson",  "spearman","cosine","jaccard","weighted_rank","manhattan","canberra",
-"euclidean", "phi_s","rho_p")}
+\item{simi_list}{a vector indicates the ten similarity measures that are used, note that the
+similarity measures used should be chosen from the ten similarity measures mentioned in the
+document. Default is c("pearson",  "spearman","cosine", "jaccard","weighted_rank",
+"manhattan","canberra","euclidean", "phi_s","rho_p")}
 
 \item{parallel}{a logical value to indicate if the process should be run parallelly in multiple threads,
 default to TURE.}
