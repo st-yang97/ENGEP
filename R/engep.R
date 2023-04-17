@@ -14,7 +14,7 @@
 gene_dataliat <- function(spa_counts,ref_list,pre_genes){
   ref_common = list()
   ref_pre = list()
-  common_genes = rownames(spa_counts)
+  common_genes = rownames(as.matrix(spa_counts))
   a=1
   for (i in 1:length(ref_list)){
     common_genes = intersect(common_genes,rownames(ref_list[[i]]))
